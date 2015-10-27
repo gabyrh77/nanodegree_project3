@@ -1,82 +1,86 @@
 package it.jaschke.alexandria;
 
-import android.app.Activity;
+import android.app.Fragment;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.util.Log;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
 
 import it.jaschke.alexandria.api.BookListAdapter;
 import it.jaschke.alexandria.api.Callback;
 import it.jaschke.alexandria.data.AlexandriaContract;
 
-
-public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
-    private BookListAdapter bookListAdapter;
-    private ListView bookList;
-    private int position = ListView.INVALID_POSITION;
-    private EditText searchText;
-
+/**
+ * GabyO:
+ * Replace ListView for RecylerView
+ * Added SearchView implementation
+ * Added BookService call method and MessageReceiver implementation
+ */
+public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListener, android.app.LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String TAG_SEARCH = "TAG_SEARCH";
+    private static final String TAG_POSITION = "TAG_POS";
+    private BookListAdapter mBookListAdapter;
+    private RecyclerView mBookList;
+    private int mPosition = ListView.INVALID_POSITION;
     private final int LOADER_ID = 10;
+    private String mSearchString;
+    private SearchView mSearchView;
 
-    public ListOfBooks() {
-    }
+    public ListOfBooks() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the options menu from XML
+        inflater.inflate(R.menu.list_of_books, menu);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        mSearchView = (SearchView) searchItem.getActionView();
+        mSearchView.setOnQueryTextListener(this);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        Cursor cursor = getActivity().getContentResolver().query(
-                AlexandriaContract.BookEntry.CONTENT_URI,
-                null, // leaving "columns" null just returns all the columns.
-                null, // cols for "where" clause
-                null, // values for "where" clause
-                null  // sort order
-        );
-
-
-        bookListAdapter = new BookListAdapter(getActivity(), cursor, 0);
         View rootView = inflater.inflate(R.layout.fragment_list_of_books, container, false);
-        searchText = (EditText) rootView.findViewById(R.id.searchText);
-        rootView.findViewById(R.id.searchButton).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ListOfBooks.this.restartLoader();
-                    }
-                }
-        );
-
-        bookList = (ListView) rootView.findViewById(R.id.listOfBooks);
-        bookList.setAdapter(bookListAdapter);
-
-        bookList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
+        getActivity().setTitle(R.string.books);
+        if(savedInstanceState!=null){
+            mSearchString = savedInstanceState.getString(TAG_SEARCH);
+            mPosition = savedInstanceState.getInt(TAG_POSITION, ListView.INVALID_POSITION);
+        }
+        mBookListAdapter = new BookListAdapter(getActivity(), rootView.findViewById(R.id.empty_view), new BookListAdapter.BookListAdapterOnClickHandler() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Cursor cursor = bookListAdapter.getCursor();
-                if (cursor != null && cursor.moveToPosition(position)) {
-                    ((Callback)getActivity())
-                            .onItemSelected(cursor.getString(cursor.getColumnIndex(AlexandriaContract.BookEntry._ID)));
-                }
+            public void onClick(String bookId, BookListAdapter.ViewHolder viewHolder) {
+                ((Callback) getActivity()).onItemSelected(bookId);
             }
         });
+        mBookList = (RecyclerView) rootView.findViewById(R.id.list_books_view);
+
+        mBookList.setHasFixedSize(true);
+        mBookList.setItemAnimator(new DefaultItemAnimator());
+        // Set the layout manager
+        mBookList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mBookList.setAdapter(mBookListAdapter);
 
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        restartLoader();
+        super.onActivityCreated(savedInstanceState);
     }
 
     private void restartLoader(){
@@ -84,24 +88,21 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
-        final String selection = AlexandriaContract.BookEntry.TITLE +" LIKE ? OR " + AlexandriaContract.BookEntry.SUBTITLE + " LIKE ? ";
-        String searchString =searchText.getText().toString();
-
-        if(searchString.length()>0){
-            searchString = "%"+searchString+"%";
-            return new CursorLoader(
+    public android.content.Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        final String querySelection = AlexandriaContract.BookEntry.TITLE +" LIKE ? OR " + AlexandriaContract.BookEntry.SUBTITLE + " LIKE ? ";
+        if(mSearchString!=null && mSearchString.length()>0){
+            mSearchString = "%"+mSearchString+"%";
+            return new android.content.CursorLoader(
                     getActivity(),
                     AlexandriaContract.BookEntry.CONTENT_URI,
                     null,
-                    selection,
-                    new String[]{searchString,searchString},
+                    querySelection,
+                    new String[]{mSearchString,mSearchString},
                     null
             );
         }
 
-        return new CursorLoader(
+        return new android.content.CursorLoader(
                 getActivity(),
                 AlexandriaContract.BookEntry.CONTENT_URI,
                 null,
@@ -112,21 +113,35 @@ public class ListOfBooks extends Fragment implements LoaderManager.LoaderCallbac
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        bookListAdapter.swapCursor(data);
-        if (position != ListView.INVALID_POSITION) {
-            bookList.smoothScrollToPosition(position);
+    public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor data) {
+        mBookListAdapter.swapCursor(data);
+        if (mPosition != ListView.INVALID_POSITION) {
+            mBookList.smoothScrollToPosition(mPosition);
         }
     }
 
+
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        bookListAdapter.swapCursor(null);
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(TAG_SEARCH, mSearchString);
+        outState.putInt(TAG_POSITION, mPosition);
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        activity.setTitle(R.string.books);
+    public void onLoaderReset(android.content.Loader<Cursor> loader) {
+        mBookListAdapter.swapCursor(null);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        mSearchString = newText;
+        ListOfBooks.this.restartLoader();
+        return true;
     }
 }

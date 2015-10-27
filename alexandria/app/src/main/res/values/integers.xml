@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="ean_size">13</integer>
+    <integer name="ean_width">8</integer>
+</resources>

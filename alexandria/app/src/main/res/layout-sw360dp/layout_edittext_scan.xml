@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/eancontainer"
+    android:layout_gravity="center"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/ean"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:inputType="number"
+        android:minEms="@integer/ean_width"
+        android:textColor="@android:color/black"
+        android:saveEnabled="true"
+        android:maxLength="@integer/ean_size"
+        android:maxLines="1"
+        android:hint="@string/input_hint"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_margin"
+        android:layout_marginStart="@dimen/activity_margin"
+        android:layout_gravity="center"
+        android:onClick="scanBook"
+        android:text="@string/scan_button"
+        android:id="@+id/scan_button"/>
+
+</LinearLayout>

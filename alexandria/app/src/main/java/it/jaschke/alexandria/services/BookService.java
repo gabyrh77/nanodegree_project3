@@ -2,9 +2,13 @@ package it.jaschke.alexandria.services;
 
 import android.app.IntentService;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.support.annotation.IntDef;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -16,11 +20,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import it.jaschke.alexandria.MainActivity;
-import it.jaschke.alexandria.R;
+import it.jaschke.alexandria.AddBook;
 import it.jaschke.alexandria.data.AlexandriaContract;
 
 
@@ -29,7 +34,20 @@ import it.jaschke.alexandria.data.AlexandriaContract;
  * a service on a separate handler thread.
  * <p/>
  */
+/**
+ * GabyO:
+ * Adding book service status to provide user feedback
+ * Fix error handling
+
+ */
 public class BookService extends IntentService {
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({STATUS_NO_NETWORK, STATUS_NOT_FOUND, STATUS_ERROR, STATUS_OK})
+    public @interface BookServiceStatus {}
+    public static final int STATUS_NO_NETWORK = 0;
+    public static final int STATUS_NOT_FOUND = 1;
+    public static final int STATUS_ERROR = 2;
+    public static final int STATUS_OK = 3;
 
     private final String LOG_TAG = BookService.class.getSimpleName();
 
@@ -84,13 +102,18 @@ public class BookService extends IntentService {
                 null  // sort order
         );
 
-        if(bookEntry.getCount()>0){
+        if(bookEntry!=null && bookEntry.getCount()>0){
             bookEntry.close();
             return;
+        }else if(bookEntry!=null){
+            bookEntry.close();
         }
 
-        bookEntry.close();
-
+        //is there internet connection?
+        if(!isNetworkAvailable()) {
+            sendStatusBroadcast(STATUS_NO_NETWORK);
+            return;
+        }
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         String bookJsonString = null;
@@ -114,6 +137,7 @@ public class BookService extends IntentService {
             InputStream inputStream = urlConnection.getInputStream();
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
+                sendStatusBroadcast(STATUS_ERROR);
                 return;
             }
 
@@ -125,11 +149,13 @@ public class BookService extends IntentService {
             }
 
             if (buffer.length() == 0) {
+                sendStatusBroadcast(STATUS_ERROR);
                 return;
             }
             bookJsonString = buffer.toString();
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Error ", e);
+            Log.e(LOG_TAG, "Error: " + e.toString(), e);
+            return;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -141,7 +167,12 @@ public class BookService extends IntentService {
                     Log.e(LOG_TAG, "Error closing stream", e);
                 }
             }
+        }
 
+        //do not continue if there was an error and the string is null or empty
+        if(bookJsonString==null || bookJsonString.isEmpty()){
+            sendStatusBroadcast(STATUS_ERROR);
+            return;
         }
 
         final String ITEMS = "items";
@@ -162,9 +193,7 @@ public class BookService extends IntentService {
             if(bookJson.has(ITEMS)){
                 bookArray = bookJson.getJSONArray(ITEMS);
             }else{
-                Intent messageIntent = new Intent(MainActivity.MESSAGE_EVENT);
-                messageIntent.putExtra(MainActivity.MESSAGE_KEY,getResources().getString(R.string.not_found));
-                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageIntent);
+                sendStatusBroadcast(STATUS_NOT_FOUND);
                 return;
             }
 
@@ -188,7 +217,7 @@ public class BookService extends IntentService {
             }
 
             writeBackBook(ean, title, subtitle, desc, imgUrl);
-
+            sendStatusBroadcast(STATUS_OK);
             if(bookInfo.has(AUTHORS)) {
                 writeBackAuthors(ean, bookInfo.getJSONArray(AUTHORS));
             }
@@ -197,37 +226,53 @@ public class BookService extends IntentService {
             }
 
         } catch (JSONException e) {
-            Log.e(LOG_TAG, "Error ", e);
+            sendStatusBroadcast(STATUS_ERROR);
+            Log.e(LOG_TAG, "Error JSONException", e);
         }
     }
 
+    private void sendStatusBroadcast(@BookServiceStatus int status){
+        Intent messageIntent = new Intent(AddBook.MESSAGE_EVENT);
+        messageIntent.putExtra(AddBook.MESSAGE_KEY, status);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageIntent);
+    }
+
+    private boolean isNetworkAvailable(){
+        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork!=null && activeNetwork.isConnectedOrConnecting();
+    }
+
     private void writeBackBook(String ean, String title, String subtitle, String desc, String imgUrl) {
-        ContentValues values= new ContentValues();
-        values.put(AlexandriaContract.BookEntry._ID, ean);
-        values.put(AlexandriaContract.BookEntry.TITLE, title);
-        values.put(AlexandriaContract.BookEntry.IMAGE_URL, imgUrl);
-        values.put(AlexandriaContract.BookEntry.SUBTITLE, subtitle);
-        values.put(AlexandriaContract.BookEntry.DESC, desc);
-        getContentResolver().insert(AlexandriaContract.BookEntry.CONTENT_URI,values);
+        //title is a not null field
+        if(title!=null && !title.isEmpty()) {
+            ContentValues values = new ContentValues();
+            values.put(AlexandriaContract.BookEntry._ID, ean);
+            values.put(AlexandriaContract.BookEntry.TITLE, title);
+            values.put(AlexandriaContract.BookEntry.IMAGE_URL, imgUrl);
+            values.put(AlexandriaContract.BookEntry.SUBTITLE, subtitle);
+            values.put(AlexandriaContract.BookEntry.DESC, desc);
+            getContentResolver().insert(AlexandriaContract.BookEntry.CONTENT_URI, values);
+        }
     }
 
     private void writeBackAuthors(String ean, JSONArray jsonArray) throws JSONException {
-        ContentValues values= new ContentValues();
+        ContentValues values;
         for (int i = 0; i < jsonArray.length(); i++) {
+            values = new ContentValues();
             values.put(AlexandriaContract.AuthorEntry._ID, ean);
             values.put(AlexandriaContract.AuthorEntry.AUTHOR, jsonArray.getString(i));
             getContentResolver().insert(AlexandriaContract.AuthorEntry.CONTENT_URI, values);
-            values= new ContentValues();
         }
     }
 
     private void writeBackCategories(String ean, JSONArray jsonArray) throws JSONException {
-        ContentValues values= new ContentValues();
+        ContentValues values;
         for (int i = 0; i < jsonArray.length(); i++) {
+            values = new ContentValues();
             values.put(AlexandriaContract.CategoryEntry._ID, ean);
             values.put(AlexandriaContract.CategoryEntry.CATEGORY, jsonArray.getString(i));
             getContentResolver().insert(AlexandriaContract.CategoryEntry.CONTENT_URI, values);
-            values= new ContentValues();
         }
     }
  }
