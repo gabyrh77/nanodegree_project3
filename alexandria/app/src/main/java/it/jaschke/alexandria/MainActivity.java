@@ -12,10 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 
 import it.jaschke.alexandria.api.Callback;
+import it.jaschke.alexandria.utils.Utils;
 
 /**
  * GabyO:
  * Moved MessageReceiver to the corresponding fragment
+ * Fix right container visible for all fragments on tablet view
+ * Close the keyboard when the drawer will be shown
  */
 public class MainActivity extends AppCompatActivity implements ScanFragment.OnScanResultListener, NavigationDrawerFragment.NavigationDrawerCallbacks, Callback {
 
@@ -23,6 +26,8 @@ public class MainActivity extends AppCompatActivity implements ScanFragment.OnSc
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment navigationDrawerFragment;
+    private static final String ARG_SELECTED_FRAGMENT = "ARG_SF";
+    private int mSelectedFragment;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -41,28 +46,40 @@ public class MainActivity extends AppCompatActivity implements ScanFragment.OnSc
         // Set up the drawer.
         navigationDrawerFragment.setUp(R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+        if(savedInstanceState!=null){
+            mSelectedFragment = savedInstanceState.getInt(ARG_SELECTED_FRAGMENT);
+            if(mSelectedFragment!=0){
+                hideRightContainer();
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_SELECTED_FRAGMENT, mSelectedFragment);
     }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-
-
         Fragment nextFragment;
-
         switch (position){
             default:
             case 0:
+                showRightContainer();
                 nextFragment = new ListOfBooks();
                 break;
             case 1:
+                hideRightContainer();
                 nextFragment = new AddBook();
                 break;
             case 2:
+                hideRightContainer();
                 nextFragment = new About();
                 break;
 
         }
-
+        mSelectedFragment = position;
         setFragment(nextFragment);
     }
 
@@ -87,8 +104,21 @@ public class MainActivity extends AppCompatActivity implements ScanFragment.OnSc
     }
 
     public void scanBook(View v){
+        Utils.closeKeyboard(this);
         ScanFragment fragment = new ScanFragment();
         setFragment(fragment);
+    }
+
+    private void hideRightContainer(){
+        if(findViewById(R.id.right_container) != null){
+            findViewById(R.id.right_container).setVisibility(View.GONE);
+        }
+    }
+
+    private void showRightContainer(){
+        if(findViewById(R.id.right_container) != null){
+            findViewById(R.id.right_container).setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

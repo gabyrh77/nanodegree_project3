@@ -1,6 +1,8 @@
 package it.jaschke.alexandria;
 
 import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -26,8 +29,9 @@ import it.jaschke.alexandria.services.BookService;
  * Removed onAttach method
  * Added the MessageReceiver and improved user feedback regarding fetching books
  * Fixed a bug regarding the activity title on phone's rotation
+ * Added data validations to prevent nullpointer errors
  */
-public class BookDetail extends Fragment implements android.app.LoaderManager.LoaderCallbacks<Cursor> {
+public class BookDetail extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String EAN_KEY = "EAN";
     private final int LOADER_ID = 10;
@@ -54,7 +58,9 @@ public class BookDetail extends Fragment implements android.app.LoaderManager.Lo
             ean = arguments.getString(BookDetail.EAN_KEY);
             getLoaderManager().restartLoader(LOADER_ID, null, this);
         }
-        getActivity().setTitle(R.string.book_detail);
+        if(getResources().getInteger(R.integer.item_choice_mode) == ListView.CHOICE_MODE_NONE) {
+            getActivity().setTitle(R.string.book_detail);
+        }
         rootView = inflater.inflate(R.layout.fragment_full_book, container, false);
 
         return rootView;
@@ -84,7 +90,7 @@ public class BookDetail extends Fragment implements android.app.LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new android.content.CursorLoader(
+        return new CursorLoader(
                 getActivity(),
                 AlexandriaContract.BookEntry.buildFullBookUri(Long.parseLong(ean)),
                 null,
@@ -100,11 +106,12 @@ public class BookDetail extends Fragment implements android.app.LoaderManager.Lo
             return;
         }
 
-        bookTitle = data.getString(data.getColumnIndex(AlexandriaContract.BookEntry.TITLE));
+        String bookTitle = data.getString(data.getColumnIndex(AlexandriaContract.BookEntry.TITLE));
         ((TextView) rootView.findViewById(R.id.fullBookTitle)).setText(bookTitle);
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);//TODO: fix me
+
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_text) + bookTitle);
         if(shareActionProvider!=null) {
@@ -118,9 +125,12 @@ public class BookDetail extends Fragment implements android.app.LoaderManager.Lo
         ((TextView) rootView.findViewById(R.id.fullBookDesc)).setText(desc);
 
         String authors = data.getString(data.getColumnIndex(AlexandriaContract.AuthorEntry.AUTHOR));
-        String[] authorsArr = authors.split(",");
-        ((TextView) rootView.findViewById(R.id.authors)).setLines(authorsArr.length);
-        ((TextView) rootView.findViewById(R.id.authors)).setText(authors.replace(",","\n"));
+        TextView authorsTextView = (TextView) rootView.findViewById(R.id.authors);
+        if(authors!=null) {
+            String[] authorsArr = authors.split(",");
+            authorsTextView.setLines(authorsArr.length);
+            authorsTextView.setText(authors.replace(",", "\n"));
+        }
         String imgUrl = data.getString(data.getColumnIndex(AlexandriaContract.BookEntry.IMAGE_URL));
         Glide.with(rootView.getContext()).load(imgUrl).placeholder(R.drawable.placeholder).into((ImageView)rootView.findViewById(R.id.fullBookCover));
         rootView.findViewById(R.id.fullBookCover).setVisibility(View.VISIBLE);

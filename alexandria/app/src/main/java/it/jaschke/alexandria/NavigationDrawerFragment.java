@@ -20,6 +20,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import it.jaschke.alexandria.utils.Utils;
+
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
@@ -29,6 +31,7 @@ import android.widget.ListView;
  * GabyO:
  * Upgraded ActionBarDrawerToggle from v4 to v7 support library
  * Fixed a bug regarding the navigation drawer button
+ * Hiding the keyboard when the drawer is opened
  */
 public class NavigationDrawerFragment extends Fragment {
 
@@ -160,6 +163,8 @@ public class NavigationDrawerFragment extends Fragment {
                 if (!isAdded()) {
                     return;
                 }
+                //close keyboard
+                Utils.closeKeyboard(getActivity());
 
                 if (!mUserLearnedDrawer) {
                     // The user manually opened the drawer; store this flag to prevent auto-showing

@@ -1,8 +1,10 @@
 package it.jaschke.alexandria;
 
 import android.app.Fragment;
+import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
@@ -23,21 +25,23 @@ import com.bumptech.glide.Glide;
 
 import it.jaschke.alexandria.data.AlexandriaContract;
 import it.jaschke.alexandria.services.BookService;
+import it.jaschke.alexandria.utils.Utils;
 
 /**
  * GabyO:
  * Removed onAttach method
  * Added the MessageReceiver and improved user feedback regarding fetching books
  * Fixed a bug regarding the activity title on phone's rotation
+ * Showing/hiding the keyboard
  */
-public class AddBook extends Fragment implements android.app.LoaderManager.LoaderCallbacks<Cursor> {
+public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
     public static final String MESSAGE_EVENT = "MESSAGE_EVENT";
     public static final String MESSAGE_KEY = "MESSAGE_EXTRA";
     private static final String SCAN_ARG = "SCAN_ARG";
     private static final String EAN_CONTENT = "eanContent";
     private final int LOADER_ID = 1;
-    private BroadcastReceiver messageReciever;
+    private BroadcastReceiver messageReceiver;
     private EditText eanEditText;
     private Button mSaveButton;
     private Button mCancelButton;
@@ -79,14 +83,14 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
             mScanText = null;
         }
 
-        messageReciever = new MessageReceiver();
+        messageReceiver = new MessageReceiver();
         IntentFilter filter = new IntentFilter(MESSAGE_EVENT);
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(messageReciever, filter);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(messageReceiver, filter);
     }
 
     @Override
     public void onDestroy() {
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(messageReciever);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(messageReceiver);
         super.onDestroy();
     }
 
@@ -133,6 +137,7 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
             @Override
             public void onClick(View view) {
                 eanEditText.setText("");
+                Utils.showKeyboard(eanEditText, getActivity());
             }
         });
 
@@ -145,6 +150,7 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
                 bookIntent.setAction(BookService.DELETE_BOOK);
                 getActivity().startService(bookIntent);
                 eanEditText.setText("");
+                Utils.showKeyboard(eanEditText, getActivity());
             }
         });
         mBookCoverImageView = (ImageView) rootView.findViewById(R.id.bookCover);
@@ -158,8 +164,14 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
         } else if (mScanText != null) {
             eanEditText.setText(mScanText);
         }
-
         return rootView;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Showing keyboard
+       Utils.showKeyboard(eanEditText, getActivity());
     }
 
     private void restartLoader() {
@@ -175,7 +187,7 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
         if (eanStr.length() == 10 && !eanStr.startsWith("978")) {
             eanStr = "978" + eanStr;
         }
-        return new android.content.CursorLoader(
+        return new CursorLoader(
                 getActivity(),
                 AlexandriaContract.BookEntry.buildFullBookUri(Long.parseLong(eanStr)),
                 null,
@@ -191,6 +203,8 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
             return;
         }
         //close keyboard
+        Utils.closeKeyboard(getActivity());
+
         String bookTitle = data.getString(data.getColumnIndex(AlexandriaContract.BookEntry.TITLE));
         if (bookTitle != null && !bookTitle.isEmpty()) {
             mTitleText.setText(bookTitle);
@@ -227,9 +241,8 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
         } else {
             mCategoriesText.setVisibility(View.GONE);
         }
-        mSaveButton.setText(R.string.ok_button);
+
         mSaveButton.setVisibility(View.VISIBLE);
-        mCancelButton.setText(R.string.delete);
         mCancelButton.setVisibility(View.VISIBLE);
     }
 
@@ -241,9 +254,9 @@ public class AddBook extends Fragment implements android.app.LoaderManager.Loade
     private void clearFields() {
         mTitleText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
         mTitleText.setVisibility(View.GONE);
-        ;
+
         mSubtitleText.setVisibility(View.GONE);
-        ;
+
         mAuthorsText.setVisibility(View.GONE);
         mCategoriesText.setVisibility(View.GONE);
         mBookCoverImageView.setVisibility(View.GONE);

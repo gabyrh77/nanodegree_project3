@@ -39,7 +39,7 @@
             android:layout_marginLeft="@dimen/activity_margin"
             android:layout_marginRight="@dimen/activity_margin"
             android:contentDescription="@string/book_cover"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_gravity="center"/>
 
         <TextView
             android:id="@+id/authors"

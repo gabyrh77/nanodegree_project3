@@ -6,9 +6,11 @@
     <dimen name="tiny_margin">6dp</dimen>
     <dimen name="small_margin">8dp</dimen>
     <dimen name="activity_margin">16dp</dimen>
+    <dimen name="centered_activity_margin">16dp</dimen>
     <dimen name="book_cover_width">128dp</dimen>
     <dimen name="book_cover_height">195dp</dimen>
     <dimen name="small_book_cover_width">42dp</dimen>
+    <dimen name="small_book_cover_width_plus_margin">50dp</dimen>
     <dimen name="small_book_cover_height">65dp</dimen>
     <dimen name="button_height">50dp</dimen>
     <!-- Per the design guidelines, navigation drawers should be between 240dp and 320dp:

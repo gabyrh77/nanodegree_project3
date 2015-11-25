@@ -155,6 +155,7 @@ public class BookService extends IntentService {
             bookJsonString = buffer.toString();
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error: " + e.toString(), e);
+            sendStatusBroadcast(STATUS_ERROR);
             return;
         } finally {
             if (urlConnection != null) {

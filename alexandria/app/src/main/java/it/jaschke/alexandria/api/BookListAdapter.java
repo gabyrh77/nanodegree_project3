@@ -3,11 +3,13 @@ package it.jaschke.alexandria.api;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,6 +29,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHo
     final private Context mContext;
     final private View mEmptyView;
     final private BookListAdapterOnClickHandler mClickHandler;
+    final private ItemChoiceManager mICM;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -44,6 +47,8 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHo
 
         String bookSubTitle = mCursor.getString(mCursor.getColumnIndex(AlexandriaContract.BookEntry.SUBTITLE));
         holder.bookSubTitle.setText(bookSubTitle);
+
+        mICM.onBindViewHolder(holder, position);
     }
 
     @Override
@@ -53,11 +58,32 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHo
 
 
 
-    public BookListAdapter(Context context, View emptyView, BookListAdapterOnClickHandler handler) {
+    public BookListAdapter(Context context, View emptyView, BookListAdapterOnClickHandler handler, int choiceMode) {
         super();
         mContext = context;
         mEmptyView = emptyView;
         mClickHandler = handler;
+        mICM = new ItemChoiceManager(this);
+        mICM.setChoiceMode(choiceMode);
+    }
+
+    public void selectView(RecyclerView.ViewHolder viewHolder) {
+        if ( viewHolder instanceof ViewHolder ) {
+            ViewHolder vfh = (ViewHolder)viewHolder;
+            vfh.onClick(vfh.itemView);
+        }
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mICM.onRestoreInstanceState(savedInstanceState);
+    }
+
+    public void onSaveInstanceState(Bundle outState) {
+        mICM.onSaveInstanceState(outState);
+    }
+
+    public int getSelectedItemPosition() {
+        return mICM.getSelectedItemPosition();
     }
 
     public void swapCursor(Cursor newCursor) {
@@ -88,11 +114,12 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHo
             int adapterPosition = getAdapterPosition();
             mCursor.moveToPosition(adapterPosition);
             String id = mCursor.getString(mCursor.getColumnIndex(AlexandriaContract.BookEntry._ID));
-            mClickHandler.onClick(id, this);
+            mClickHandler.onClick(id, adapterPosition);
+            mICM.onClick(this);
         }
     }
 
     public static interface BookListAdapterOnClickHandler {
-        void onClick(String bookId, ViewHolder vh);
+        void onClick(String bookId, int adapterPosition);
     }
 }

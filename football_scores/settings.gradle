@@ -1,1 +1,15 @@
-include ':app'
+include ':app',':third_party:gif_decoder',':third_party:disklrucache',':testutil', ':library'
+//project(':integration:gifencoder').projectDir = new File('glide-parent/integration/gifencoder')
+//project(':integration:recyclerview').projectDir = new File('glide-parent/integration/recyclerview')
+project(':third_party:gif_decoder').projectDir = new File('glide-parent/third_party/gif_decoder')
+//project(':samples:gallery').projectDir = new File('glide-parent/samples/gallery')
+project(':library').projectDir = new File('glide-parent/library')
+//project(':samples:giphy').projectDir = new File('glide-parent/samples/giphy')
+//project(':integration:volley').projectDir = new File('glide-parent/integration/volley')
+//project(':integration').projectDir = new File('glide-parent/integration')
+//project(':integration:okhttp').projectDir = new File('glide-parent/integration/okhttp')
+project(':third_party:disklrucache').projectDir = new File('glide-parent/third_party/disklrucache')
+//project(':samples:svg').projectDir = new File('glide-parent/samples/svg')
+project(':testutil').projectDir = new File('glide-parent/testutil')
+//project(':glide').projectDir = new File('glide-parent/glide')
+//project(':samples:flickr').projectDir = new File('glide-parent/samples/flickr')

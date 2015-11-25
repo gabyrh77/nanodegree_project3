@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/glide-parent/third_party/disklrucache/disklrucache.iml" filepath="$PROJECT_DIR$/glide-parent/third_party/disklrucache/disklrucache.iml" />
+      <module fileurl="file://$PROJECT_DIR$/football_scores.iml" filepath="$PROJECT_DIR$/football_scores.iml" />
+      <module fileurl="file://$PROJECT_DIR$/glide-parent/third_party/gif_decoder/gif_decoder.iml" filepath="$PROJECT_DIR$/glide-parent/third_party/gif_decoder/gif_decoder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/glide-parent/library/library.iml" filepath="$PROJECT_DIR$/glide-parent/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/glide-parent/testutil/testutil.iml" filepath="$PROJECT_DIR$/glide-parent/testutil/testutil.iml" />
+      <module fileurl="file://$PROJECT_DIR$/third_party/third_party.iml" filepath="$PROJECT_DIR$/third_party/third_party.iml" />
+    </modules>
+  </component>
+</project>

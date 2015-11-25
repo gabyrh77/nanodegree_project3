@@ -1,9 +1,11 @@
 package it.jaschke.alexandria;
 
 import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -21,11 +23,11 @@ import it.jaschke.alexandria.data.AlexandriaContract;
 
 /**
  * GabyO:
- * Replace ListView for RecylerView
+ * Replace ListView for RecyclerView
  * Added SearchView implementation
  * Added BookService call method and MessageReceiver implementation
  */
-public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListener, android.app.LoaderManager.LoaderCallbacks<Cursor> {
+public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListener, LoaderManager.LoaderCallbacks<Cursor> {
     private static final String TAG_SEARCH = "TAG_SEARCH";
     private static final String TAG_POSITION = "TAG_POS";
     private BookListAdapter mBookListAdapter;
@@ -34,6 +36,7 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
     private final int LOADER_ID = 10;
     private String mSearchString;
     private SearchView mSearchView;
+    private int mChoiceMode;
 
     public ListOfBooks() {}
 
@@ -50,6 +53,7 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
         MenuItem searchItem = menu.findItem(R.id.action_search);
         mSearchView = (SearchView) searchItem.getActionView();
         mSearchView.setOnQueryTextListener(this);
+
     }
 
     @Override
@@ -60,26 +64,29 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
             mSearchString = savedInstanceState.getString(TAG_SEARCH);
             mPosition = savedInstanceState.getInt(TAG_POSITION, ListView.INVALID_POSITION);
         }
+        mChoiceMode = getResources().getInteger(R.integer.item_choice_mode);
+
         mBookListAdapter = new BookListAdapter(getActivity(), rootView.findViewById(R.id.empty_view), new BookListAdapter.BookListAdapterOnClickHandler() {
             @Override
-            public void onClick(String bookId, BookListAdapter.ViewHolder viewHolder) {
+            public void onClick(String bookId, int adapterPosition) {
+                mPosition = adapterPosition;
                 ((Callback) getActivity()).onItemSelected(bookId);
             }
-        });
+        }, mChoiceMode);
         mBookList = (RecyclerView) rootView.findViewById(R.id.list_books_view);
 
         mBookList.setHasFixedSize(true);
-        mBookList.setItemAnimator(new DefaultItemAnimator());
         // Set the layout manager
         mBookList.setLayoutManager(new LinearLayoutManager(getActivity()));
         mBookList.setAdapter(mBookListAdapter);
+
 
         return rootView;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        restartLoader();
+        getLoaderManager().initLoader(LOADER_ID, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -88,21 +95,21 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
     }
 
     @Override
-    public android.content.Loader<Cursor> onCreateLoader(int id, Bundle args) {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         final String querySelection = AlexandriaContract.BookEntry.TITLE +" LIKE ? OR " + AlexandriaContract.BookEntry.SUBTITLE + " LIKE ? ";
         if(mSearchString!=null && mSearchString.length()>0){
-            mSearchString = "%"+mSearchString+"%";
-            return new android.content.CursorLoader(
+            String searchQuery = "%"+mSearchString+"%";
+            return new CursorLoader(
                     getActivity(),
                     AlexandriaContract.BookEntry.CONTENT_URI,
                     null,
                     querySelection,
-                    new String[]{mSearchString,mSearchString},
+                    new String[]{searchQuery,searchQuery},
                     null
             );
         }
 
-        return new android.content.CursorLoader(
+        return new CursorLoader(
                 getActivity(),
                 AlexandriaContract.BookEntry.CONTENT_URI,
                 null,
@@ -113,10 +120,14 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
     }
 
     @Override
-    public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mBookListAdapter.swapCursor(data);
-        if (mPosition != ListView.INVALID_POSITION) {
+        if (mPosition != ListView.INVALID_POSITION && mBookListAdapter.getSelectedItemPosition()<0) {
             mBookList.smoothScrollToPosition(mPosition);
+          /*  if(mChoiceMode == ListView.CHOICE_MODE_SINGLE) {
+                BookListAdapter.ViewHolder viewHolder = (BookListAdapter.ViewHolder) mBookList.findViewHolderForItemId(mBookListAdapter.getItemId(mPosition));
+                mBookListAdapter.selectView(viewHolder);
+            }*/
         }
     }
 
@@ -129,7 +140,7 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
     }
 
     @Override
-    public void onLoaderReset(android.content.Loader<Cursor> loader) {
+    public void onLoaderReset(Loader<Cursor> loader) {
         mBookListAdapter.swapCursor(null);
     }
 
