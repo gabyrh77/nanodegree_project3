@@ -59,11 +59,6 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     {
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -98,11 +93,11 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-
-        outState.putStringArray(ARG_SECTION_DATE, fragmentdate);
-        mAdapter.onSaveInstanceState(outState);
-
         super.onSaveInstanceState(outState);
+        outState.putStringArray(ARG_SECTION_DATE, fragmentdate);
+        if(mAdapter!=null) {
+            mAdapter.onSaveInstanceState(outState);
+        }
     }
 
     @Override
@@ -115,8 +110,9 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor)
     {
-        Log.v(MainScreenFragment.class.getName(), "Loader query: " + String.valueOf(cursor.getCount()));
+        //Log.v(MainScreenFragment.class.getName(), "Loader query: " + String.valueOf(cursor.getCount()));
         mAdapter.swapCursor(cursor);
+
         if (cursor.getCount()==0){
             if(!FootballAPIService.isNetworkAvailable(getActivity())){
                 FootballAPIService.sendStatusBroadcast(getContext(), FootballAPIService.STATUS_NO_NETWORK);
