@@ -139,7 +139,9 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
         super.onSaveInstanceState(outState);
         outState.putString(TAG_SEARCH, mSearchString);
         outState.putInt(TAG_POSITION, mPosition);
-        mBookListAdapter.onSaveInstanceState(outState);
+        if(mBookListAdapter!=null) {
+            mBookListAdapter.onSaveInstanceState(outState);
+        }
     }
 
     @Override
