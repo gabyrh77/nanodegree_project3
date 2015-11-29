@@ -35,7 +35,7 @@ public class MyPageAdapter extends FragmentPagerAdapter{
 
     @Override
     public Fragment getItem(int i) {
-        // Return a PlaceholderFragment (defined as a static inner class below).
+        // Return a MainScreenFragment with the corresponding date.
         return MainScreenFragment.newInstance(stringDates.get(i));
     }
 
@@ -74,29 +74,4 @@ public class MyPageAdapter extends FragmentPagerAdapter{
         }
         return null;
     }
-
-
-   /* public static class PagerFragment extends Fragment {
-        public static final int NUM_PAGES = 5;
-        public ViewPager mPagerHandler;
-        private MyPageAdapter mPagerAdapter;
-        private MainScreenFragment[] viewFragments = new MainScreenFragment[5];
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.pager_fragment, container, false);
-            mPagerHandler = (ViewPager) rootView.findViewById(R.id.pager);
-            mPagerAdapter = new MyPageAdapter(getChildFragmentManager());
-
-            SimpleDateFormat mformat = new SimpleDateFormat("yyyy-MM-dd");
-            for (int i = 0; i < NUM_PAGES; i++) {
-                Date fragmentdate = new Date(System.currentTimeMillis() + ((i - 2) * 86400000));
-                viewFragments[i] = new MainScreenFragment();
-                viewFragments[i].setFragmentDate(mformat.format(fragmentdate));
-            }
-            mPagerHandler.setAdapter(mPagerAdapter);
-            mPagerHandler.setCurrentItem(MainActivity.current_fragment);
-            return rootView;
-        }
-    }*/
 }

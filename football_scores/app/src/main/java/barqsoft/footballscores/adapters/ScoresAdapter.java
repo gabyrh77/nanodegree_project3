@@ -74,7 +74,7 @@ public class ScoresAdapter extends CursorAdapter
         mHolder.home_name.setText(cursor.getString(cursor.getColumnIndex(DatabaseContract.Score.HOME_COL)));
         mHolder.away_name.setText(cursor.getString(cursor.getColumnIndex(DatabaseContract.Score.AWAY_COL)));
         mHolder.date.setText(cursor.getString(cursor.getColumnIndex(DatabaseContract.Score.TIME_COL)));
-        mHolder.score.setText(Utilities.getScores(cursor.getInt(cursor.getColumnIndex(DatabaseContract.Score.HOME_GOALS_COL)), cursor.getInt(cursor.getColumnIndex(DatabaseContract.Score.AWAY_GOALS_COL))));
+        mHolder.score.setText(Utilities.getScores(context.getString(R.string.score_divider), cursor.getInt(cursor.getColumnIndex(DatabaseContract.Score.HOME_GOALS_COL)), cursor.getInt(cursor.getColumnIndex(DatabaseContract.Score.AWAY_GOALS_COL))));
         mHolder.match_id = cursor.getDouble(cursor.getColumnIndex(DatabaseContract.Score.MATCH_ID));
 
         String homeCrestUrl = (cursor.getColumnIndex(ScoresProvider.HOME_TEAM_PICTURE_ALIAS)>=0)?
@@ -110,7 +110,7 @@ public class ScoresAdapter extends CursorAdapter
             container.addView(v, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT
                     , ViewGroup.LayoutParams.MATCH_PARENT));
             TextView match_day = (TextView) v.findViewById(R.id.matchday_textview);
-            match_day.setText(Utilities.getMatchDay(cursor.getInt(cursor.getColumnIndex(DatabaseContract.Score.MATCH_DAY)),
+            match_day.setText(Utilities.getMatchDay(context, cursor.getInt(cursor.getColumnIndex(DatabaseContract.Score.MATCH_DAY)),
                     cursor.getString(cursor.getColumnIndex(DatabaseContract.Season.SEASON_COD))));
             TextView league = (TextView) v.findViewById(R.id.league_textview);
             league.setText(Utilities.getLeague(cursor.getString(cursor.getColumnIndex(DatabaseContract.Season.SEASON_COD)), context));

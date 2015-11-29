@@ -53,52 +53,52 @@ public class Utilities
                 case LIGUE2:
                     return context.getString(R.string.ligue2);
                 default:
-                    return "Not known League Please report";
+                    return context.getString(R.string.unknown_league);
             }
         }
-        return "Not known League Please report";
+        return context.getString(R.string.unknown_league);
     }
 
-    public static String getMatchDay(int match_day,String league_cod)
+    public static String getMatchDay(Context context, int match_day, String league_cod)
     {
         if(CHAMPIONS_LEAGUE.equals(league_cod))
         {
             if (match_day <= 6)
             {
-                return "Group Stages, Matchday : 6";
+                return context.getString(R.string.group_stage_text, match_day);
             }
             else if(match_day == 7 || match_day == 8)
             {
-                return "First Knockout round";
+                return context.getString(R.string.first_knockout_round);
             }
             else if(match_day == 9 || match_day == 10)
             {
-                return "QuarterFinal";
+                return context.getString(R.string.quarter_final);
             }
             else if(match_day == 11 || match_day == 12)
             {
-                return "SemiFinal";
+                return context.getString(R.string.semi_final);
             }
             else
             {
-                return "Final";
+                return context.getString(R.string.final_text);
             }
         }
         else
         {
-            return "Matchday : " + String.valueOf(match_day);
+            return context.getString(R.string.matchday_text, match_day);
         }
     }
 
-    public static String getScores(int home_goals,int awaygoals)
+    public static String getScores(String divider, int home_goals, int awaygoals)
     {
         if(home_goals < 0 || awaygoals < 0)
         {
-            return " - ";
+            return divider;
         }
         else
         {
-            return String.valueOf(home_goals) + " - " + String.valueOf(awaygoals);
+            return String.valueOf(home_goals) + divider + String.valueOf(awaygoals);
         }
     }
 

@@ -92,7 +92,7 @@ public class FootballWidgetRemoteViewsService extends RemoteViewsService {
                 views.setTextColor(R.id.away_name, getApplicationContext().getResources().getColor(R.color.lightGray));
                 views.setTextViewText(R.id.data_textview, data.getString(data.getColumnIndex(DatabaseContract.Score.TIME_COL)));
                 views.setTextColor(R.id.data_textview, getApplicationContext().getResources().getColor(R.color.lightGray));
-                views.setTextViewText(R.id.score_textview, Utilities.getScores(data.getInt(data.getColumnIndex(DatabaseContract.Score.HOME_GOALS_COL)), data.getInt(data.getColumnIndex(DatabaseContract.Score.AWAY_GOALS_COL))));
+                views.setTextViewText(R.id.score_textview, Utilities.getScores(getString(R.string.score_divider), data.getInt(data.getColumnIndex(DatabaseContract.Score.HOME_GOALS_COL)), data.getInt(data.getColumnIndex(DatabaseContract.Score.AWAY_GOALS_COL))));
                 views.setTextColor(R.id.score_textview, getApplicationContext().getResources().getColor(R.color.lightGray));
                // double match_id = data.getDouble(data.getColumnIndex(DatabaseContract.Score.MATCH_ID));
 

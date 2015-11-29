@@ -37,7 +37,7 @@
 
         <activity
             android:name="barqsoft.footballscores.AboutActivity"
-            android:label="About"
+            android:label="@string/about"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
