@@ -7,7 +7,7 @@ Alexandria:
 	*  Updated navigation drawer implementation and design
 	*  Added basic material design
 	*  Added user feedback for network/server status
-	*  Fix some crashes
+	*  Fixed some crashes
 	*  Added a search view
 
 
