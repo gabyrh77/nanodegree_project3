@@ -53,12 +53,12 @@ public class FootballWidgetRemoteViewsService extends RemoteViewsService {
                 // that calls use our process and permission
                 final long identityToken = Binder.clearCallingIdentity();
 
-                Uri todayUri = DatabaseContract.Score.SCORES_CONTENT_URI;
+                Uri todayUri = DatabaseContract.Score.buildScoreWithDate();
                 String strDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis()));
                 data = getContentResolver().query(todayUri,
                         null,
                         null,
-                        null,//new String[]{strDate},
+                        new String[]{strDate},
                         DatabaseContract.Score.DATE_COL + " ASC");
                 Binder.restoreCallingIdentity(identityToken);
             }
@@ -82,53 +82,40 @@ public class FootballWidgetRemoteViewsService extends RemoteViewsService {
                         data == null || !data.moveToPosition(position)) {
                     return null;
                 }
-                boolean returnHome = false;
+                //boolean returnHome = false;
                 final RemoteViews views = new RemoteViews(getPackageName(),
                         R.layout.scores_list_item);
 
                 views.setTextViewText(R.id.home_name, data.getString(data.getColumnIndex(DatabaseContract.Score.HOME_COL)));
+                views.setTextColor(R.id.home_name, getApplicationContext().getResources().getColor(R.color.lightGray));
                 views.setTextViewText(R.id.away_name, data.getString(data.getColumnIndex(DatabaseContract.Score.AWAY_COL)));
+                views.setTextColor(R.id.away_name, getApplicationContext().getResources().getColor(R.color.lightGray));
                 views.setTextViewText(R.id.data_textview, data.getString(data.getColumnIndex(DatabaseContract.Score.TIME_COL)));
-                views.setTextViewText(R.id.data_textview, Utilities.getScores(data.getInt(data.getColumnIndex(DatabaseContract.Score.HOME_GOALS_COL)), data.getInt(data.getColumnIndex(DatabaseContract.Score.AWAY_GOALS_COL))));
-                double match_id = data.getDouble(data.getColumnIndex(DatabaseContract.Score.MATCH_ID));
+                views.setTextColor(R.id.data_textview, getApplicationContext().getResources().getColor(R.color.lightGray));
+                views.setTextViewText(R.id.score_textview, Utilities.getScores(data.getInt(data.getColumnIndex(DatabaseContract.Score.HOME_GOALS_COL)), data.getInt(data.getColumnIndex(DatabaseContract.Score.AWAY_GOALS_COL))));
+                views.setTextColor(R.id.score_textview, getApplicationContext().getResources().getColor(R.color.lightGray));
+               // double match_id = data.getDouble(data.getColumnIndex(DatabaseContract.Score.MATCH_ID));
 
                 String homeCrestUrl = (data.getColumnIndex(ScoresProvider.HOME_TEAM_PICTURE_ALIAS)>=0)?
                         data.getString(data.getColumnIndex(ScoresProvider.HOME_TEAM_PICTURE_ALIAS)):null;
                 Bitmap homeTeamBitmap = null;
                 if(homeCrestUrl!=null){
                     homeTeamBitmap = bitmapUtil.getBitmapFromUrl(homeCrestUrl);
-                   /* try{
-                        if(homeCrestUrl.toLowerCase().endsWith(".svg")) {
-                            homeTeamBitmap = Glide.with(FootballWidgetRemoteViewsService.this).as(Bitmap.class).load(homeCrestUrl).into(100, 100).get();
-                            //homeTeamBitmap = bitmapUtil.getBitmapFromPictureDrawable(pictureDrawable, homeCrestUrl);
-                        }else {
-                            homeTeamBitmap = Glide.with(FootballWidgetRemoteViewsService.this).asBitmap().load(homeCrestUrl).into(100, 100).get();
-                        }
-                    } catch (InterruptedException | ExecutionException e) {
-                        Log.e(LOG_TAG, "Error retrieving large icon from " + homeCrestUrl, e);
-                    }*/
                 }
 
                 if(homeTeamBitmap!=null) {
                     views.setImageViewBitmap(R.id.home_crest, homeTeamBitmap);
+
                 }else{
                     views.setImageViewResource(R.id.home_crest, R.drawable.no_icon);
                 }
+                views.setContentDescription(R.id.home_crest, getString(R.string.homeCrest));
 
                 String awayCrestUrl = (data.getColumnIndex(ScoresProvider.AWAY_TEAM_PICTURE_ALIAS)>=0)?
                         data.getString(data.getColumnIndex(ScoresProvider.AWAY_TEAM_PICTURE_ALIAS)):null;
                 Bitmap awayTeamBitmap = null;
                 if(awayCrestUrl!=null){
-                    try{
-                        if(awayCrestUrl.toLowerCase().endsWith(".svg")) {
-                           PictureDrawable pictureDrawable = Glide.with(FootballWidgetRemoteViewsService.this).as(PictureDrawable.class).load(awayCrestUrl).into(100, 100).get();
-                           awayTeamBitmap = bitmapUtil.getBitmapFromPictureDrawable(pictureDrawable, awayCrestUrl);
-                        }else {
-                            awayTeamBitmap = Glide.with(FootballWidgetRemoteViewsService.this).asBitmap().load(awayCrestUrl).into(100, 100).get();
-                        }
-                    } catch (InterruptedException | ExecutionException e) {
-                        Log.e(LOG_TAG, "Error retrieving large icon from " + awayCrestUrl, e);
-                    }
+                    awayTeamBitmap = bitmapUtil.getBitmapFromUrl(awayCrestUrl);
                 }
 
                 if(awayTeamBitmap!=null) {
@@ -136,60 +123,9 @@ public class FootballWidgetRemoteViewsService extends RemoteViewsService {
                 }else{
                     views.setImageViewResource(R.id.away_crest, R.drawable.no_icon);
                 }
-
-               /* int weatherId = data.getInt(INDEX_WEATHER_CONDITION_ID);
-                //int weatherArtResourceId = Utility.getIconResourceForWeatherCondition(weatherId);
-                Bitmap weatherArtImage = null;
-                if ( !Utility.usingLocalGraphics(DetailWidgetRemoteViewsService.this) ) {
-                    String weatherArtResourceUrl = Utility.getArtUrlForWeatherCondition(
-                            DetailWidgetRemoteViewsService.this, weatherId);
-                    try {
-                        weatherArtImage = Glide.with(DetailWidgetRemoteViewsService.this)
-                                .load(weatherArtResourceUrl)
-                                .asBitmap()
-                                .error(weatherArtResourceId)
-                                .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        Log.e(LOG_TAG, "Error retrieving large icon from " + weatherArtResourceUrl, e);
-                    }
-                }
-                String description = data.getString(INDEX_WEATHER_DESC);
-                long dateInMillis = data.getLong(INDEX_WEATHER_DATE);
-                String formattedDate = Utility.getFriendlyDayString(
-                        DetailWidgetRemoteViewsService.this, dateInMillis, false);
-                double maxTemp = data.getDouble(INDEX_WEATHER_MAX_TEMP);
-                double minTemp = data.getDouble(INDEX_WEATHER_MIN_TEMP);
-                String formattedMaxTemperature =
-                        Utility.formatTemperature(DetailWidgetRemoteViewsService.this, maxTemp);
-                String formattedMinTemperature =
-                        Utility.formatTemperature(DetailWidgetRemoteViewsService.this, minTemp);
-                if (weatherArtImage != null) {
-                    views.setImageViewBitmap(R.id.widget_icon, weatherArtImage);
-                } else {
-                    views.setImageViewResource(R.id.widget_icon, weatherArtResourceId);
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-                    setRemoteContentDescription(views, description);
-                }
-                views.setTextViewText(R.id.widget_date, formattedDate);
-                views.setTextViewText(R.id.widget_description, description);
-                views.setTextViewText(R.id.widget_high_temperature, formattedMaxTemperature);
-                views.setTextViewText(R.id.widget_low_temperature, formattedMinTemperature);
-
-                final Intent fillInIntent = new Intent();
-                String locationSetting =
-                        Utility.getPreferredLocation(DetailWidgetRemoteViewsService.this);
-                Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                        locationSetting,
-                        dateInMillis);
-                fillInIntent.setData(weatherUri);
-                views.setOnClickFillInIntent(R.id.widget_list_item, fillInIntent);*/
+                views.setContentDescription(R.id.away_crest, getString(R.string.awayCrest));
 
                 return views;
-            }
-
-            private void setRemoteContentDescription(RemoteViews views,int view, String description) {
-                views.setContentDescription(view, description);
             }
 
             @Override

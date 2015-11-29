@@ -52,19 +52,9 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     {
     }
 
-   /* private void update_scores()
-    {
-        Intent service_start = new Intent(getActivity(), FootballFetchService.class);
-        getActivity().startService(service_start);
-    }*/
-/*    public void setFragmentDate(String date)
-    {
-        fragmentdate[0] = date;
-    }*/
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              final Bundle savedInstanceState) {
-        //update_scores();
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         final ListView score_list = (ListView) rootView.findViewById(R.id.scores_list);
 
@@ -109,7 +99,6 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     {
         Log.v(MainScreenFragment.class.getName(), "Loader query: " + String.valueOf(cursor.getCount()));
         mAdapter.swapCursor(cursor);
-        //mAdapter.notifyDataSetChanged();
     }
 
     @Override

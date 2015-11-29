@@ -10,16 +10,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 //import barqsoft.footballscores.adapter.SvgSoftwareLayerSetter;
 //import com.bumptech.glide;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.fitCenterTransform;
 import static com.bumptech.glide.request.RequestOptions.placeholderOf;
 import barqsoft.footballscores.R;
+import barqsoft.footballscores.utils.BitmapUtil;
 import barqsoft.footballscores.utils.Utilities;
 import barqsoft.footballscores.db.DatabaseContract;
 import barqsoft.footballscores.db.ScoresProvider;
@@ -30,15 +34,7 @@ import barqsoft.footballscores.svg.SvgSoftwareLayerSetter;
  */
 public class ScoresAdapter extends CursorAdapter
 {
-//    public static final int COL_HOME = 3;
-//    public static final int COL_AWAY = 4;
-//    public static final int COL_HOME_GOALS = 6;
-//    public static final int COL_AWAY_GOALS = 7;
-//    public static final int COL_DATE = 1;
-//    public static final int COL_LEAGUE = 5;
-//    public static final int COL_MATCHDAY = 9;
-//    public static final int COL_ID = 8;
-//    public static final int COL_MATCHTIME = 2;
+
     public double detail_match_id = 0;
     private String FOOTBALL_SCORES_HASHTAG = "#Football_Scores";
     private RequestBuilder<PictureDrawable> requestSVGBuilder;
@@ -50,14 +46,14 @@ public class ScoresAdapter extends CursorAdapter
         requestSVGBuilder = Glide.with(context)
                 .as(PictureDrawable.class)
                 .apply(placeholderOf(R.drawable.no_icon).error(R.drawable.no_icon)
-                        .fitCenter(context))
+                        .fitCenter(context).diskCacheStrategy(DiskCacheStrategy.DATA))
                 .transition(withCrossFade())
                 .listener(new SvgSoftwareLayerSetter());
 
         requestBuilder = Glide.with(context)
                 .asDrawable()
                 .apply(fitCenterTransform(context).placeholder(R.drawable.no_icon)
-                        .error(R.drawable.no_icon));
+                        .error(R.drawable.no_icon).diskCacheStrategy(DiskCacheStrategy.ALL));
     }
 
     @Override
@@ -66,7 +62,7 @@ public class ScoresAdapter extends CursorAdapter
         View mItem = LayoutInflater.from(context).inflate(R.layout.scores_list_item, parent, false);
         ViewHolder mHolder = new ViewHolder(mItem);
         mItem.setTag(mHolder);
-        //Log.v(FetchScoreTask.LOG_TAG,"new View inflated");
+
         return mItem;
     }
 
@@ -83,8 +79,7 @@ public class ScoresAdapter extends CursorAdapter
         String homeCrestUrl = (cursor.getColumnIndex(ScoresProvider.HOME_TEAM_PICTURE_ALIAS)>=0)?
                 cursor.getString(cursor.getColumnIndex(ScoresProvider.HOME_TEAM_PICTURE_ALIAS)):null;
         if(homeCrestUrl!=null){
-            //Log.i("PICTURE: ", homeCrestUrl);
-            if(homeCrestUrl.toLowerCase().endsWith(".svg")) {
+            if(homeCrestUrl.toLowerCase().endsWith(BitmapUtil.SVG_EXTENSION)) {
                 requestSVGBuilder.load(homeCrestUrl).into(mHolder.home_crest);
             }else{
                 requestBuilder.load(homeCrestUrl).into(mHolder.home_crest);
@@ -96,8 +91,7 @@ public class ScoresAdapter extends CursorAdapter
         String awayCrestUrl = (cursor.getColumnIndex(ScoresProvider.AWAY_TEAM_PICTURE_ALIAS)>=0)?
                 cursor.getString(cursor.getColumnIndex(ScoresProvider.AWAY_TEAM_PICTURE_ALIAS)):null;
         if(awayCrestUrl!=null){
-            //Log.i("PICTURE: ", awayCrestUrl);
-            if(awayCrestUrl.toLowerCase().endsWith(".svg")) {
+            if(awayCrestUrl.toLowerCase().endsWith(BitmapUtil.SVG_EXTENSION)) {
                 requestSVGBuilder.load(awayCrestUrl).into(mHolder.away_crest);
             }else{
                 requestBuilder.load(awayCrestUrl).into(mHolder.away_crest);
@@ -105,15 +99,12 @@ public class ScoresAdapter extends CursorAdapter
         }else{
             mHolder.away_crest.setImageResource(R.drawable.no_icon);
         }
-        //Log.v(FetchScoreTask.LOG_TAG,mHolder.home_name.getText() + " Vs. " + mHolder.away_name.getText() +" id " + String.valueOf(mHolder.match_id));
-        //Log.v(FetchScoreTask.LOG_TAG,String.valueOf(detail_match_id));
+
         LayoutInflater vi = (LayoutInflater) context.getApplicationContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = vi.inflate(R.layout.detail_fragment, null);
         ViewGroup container = (ViewGroup) view.findViewById(R.id.details_fragment_container);
-        if(mHolder.match_id == detail_match_id)
-        {
-            //Log.v(FetchScoreTask.LOG_TAG,"will insert extraView");
+        if(mHolder.match_id == detail_match_id){
 
             container.addView(v, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT
                     , ViewGroup.LayoutParams.MATCH_PARENT));
@@ -122,7 +113,7 @@ public class ScoresAdapter extends CursorAdapter
                     cursor.getString(cursor.getColumnIndex(DatabaseContract.Season.SEASON_COD))));
             TextView league = (TextView) v.findViewById(R.id.league_textview);
             league.setText(Utilities.getLeague(cursor.getString(cursor.getColumnIndex(DatabaseContract.Season.SEASON_COD)), context));
-            Button share_button = (Button) v.findViewById(R.id.share_button);
+            ImageButton share_button = (ImageButton) v.findViewById(R.id.share_button);
             share_button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v)

@@ -31,8 +31,8 @@ public class SeasonsSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         Log.d(LOG_TAG, "onPerformSync Called.");
-      //  service.getSeasons();
-       // service.getScoreData("p2");
+        service.getSeasons();
+        service.getScoreData("p2");
     }
 
     /**
