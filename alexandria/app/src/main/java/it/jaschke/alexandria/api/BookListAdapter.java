@@ -4,12 +4,10 @@ package it.jaschke.alexandria.api;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,7 +20,7 @@ import it.jaschke.alexandria.data.AlexandriaContract;
  * Created by saj on 11/01/15.
  */
 /**
- * GabyO: change the adapter to RecyclerView, updated to display image using gridle
+ * GabyO: change the adapter to RecyclerView, updated to display image using Glide
  */
 public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHolder> {
     private Cursor mCursor;
@@ -67,12 +65,12 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHo
         mICM.setChoiceMode(choiceMode);
     }
 
-    public void selectView(RecyclerView.ViewHolder viewHolder) {
+  /*  public void selectView(RecyclerView.ViewHolder viewHolder) {
         if ( viewHolder instanceof ViewHolder ) {
             ViewHolder vfh = (ViewHolder)viewHolder;
             vfh.onClick(vfh.itemView);
         }
-    }
+    }*/
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         mICM.onRestoreInstanceState(savedInstanceState);
@@ -92,9 +90,9 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.ViewHo
         mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
-    public Cursor getCursor() {
+    /*public Cursor getCursor() {
         return mCursor;
-    }
+    }*/
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public final ImageView bookCover;

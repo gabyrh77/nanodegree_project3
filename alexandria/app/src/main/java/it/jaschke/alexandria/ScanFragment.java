@@ -65,6 +65,6 @@ public class ScanFragment extends Fragment implements ZXingScannerView.ResultHan
 
     // Container Activity must implement this interface
     public interface OnScanResultListener {
-        public void onScanResult(String scanText);
+        void onScanResult(String scanText);
     }
 }

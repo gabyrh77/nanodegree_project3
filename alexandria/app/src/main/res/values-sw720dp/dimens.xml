@@ -1,7 +1,7 @@
 <resources>
 
     <dimen name="small_margin">12dp</dimen>
-    <dimen name="activity_margin">32dp</dimen>
+    <dimen name="medium_margin">32dp</dimen>
     <dimen name="centered_activity_margin">160dp</dimen>
     <dimen name="book_cover_width">192dp</dimen>
     <dimen name="book_cover_height">292dp</dimen>

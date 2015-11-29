@@ -11,6 +11,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -35,10 +36,11 @@ import it.jaschke.alexandria.utils.Utils;
  * Showing/hiding the keyboard
  */
 public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
+    //private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
     public static final String MESSAGE_EVENT = "MESSAGE_EVENT";
     public static final String MESSAGE_KEY = "MESSAGE_EXTRA";
-    private static final String SCAN_ARG = "SCAN_ARG";
+    public static final String SCAN_ARG = "SCAN_ARG";
+    public static final String PREVENT_KEYBOARD_ARG = "KB_ARG";
     private static final String EAN_CONTENT = "eanContent";
     private final int LOADER_ID = 1;
     private BroadcastReceiver messageReceiver;
@@ -51,12 +53,12 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     private TextView mAuthorsText;
     private TextView mCategoriesText;
     private String mScanText;
-
+    private Boolean preventKeyboard;
 
     public AddBook() {
     }
 
-    public static AddBook newInstanceWithBarcode(String scanText) {
+  /*  public static AddBook newInstanceWithBarcode(String scanText) {
         AddBook myFragment = new AddBook();
 
         Bundle args = new Bundle();
@@ -64,7 +66,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         myFragment.setArguments(args);
 
         return myFragment;
-    }
+    }*/
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -79,8 +81,10 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mScanText = getArguments().getString(SCAN_ARG);
+            preventKeyboard = getArguments().getBoolean(PREVENT_KEYBOARD_ARG, false);
         } else {
             mScanText = null;
+            preventKeyboard = false;
         }
 
         messageReceiver = new MessageReceiver();
@@ -98,7 +102,6 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_add_book, container, false);
-        getActivity().setTitle(R.string.scan);
         eanEditText = (EditText) rootView.findViewById(R.id.ean);
 
         eanEditText.addTextChangedListener(new TextWatcher() {
@@ -170,9 +173,27 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Showing keyboard
-       Utils.showKeyboard(eanEditText, getActivity());
+        if(!preventKeyboard) {
+            // Showing keyboard
+            view.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Utils.showKeyboard(eanEditText, getActivity());
+                }
+            }, 100);
+        }else{
+            Utils.closeKeyboard(getActivity());
+        }
     }
+
+   /* @Override
+    public void onResume() {
+        super.onResume();
+        if(!preventKeyboard) {
+            // Showing keyboard
+            Utils.showKeyboard(eanEditText, getActivity());
+        }
+    }*/
 
     private void restartLoader() {
         getLoaderManager().restartLoader(LOADER_ID, null, this);

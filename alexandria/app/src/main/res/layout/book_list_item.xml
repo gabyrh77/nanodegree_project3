@@ -4,8 +4,8 @@
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:layout_height="wrap_content"
     android:background="@drawable/book_item_selector"
-    android:paddingLeft="@dimen/activity_margin"
-    android:paddingRight="@dimen/activity_margin"
+    android:paddingLeft="@dimen/medium_margin"
+    android:paddingRight="@dimen/medium_margin"
     android:paddingTop="@dimen/tiny_margin"
     android:paddingBottom="@dimen/tiny_margin">
 

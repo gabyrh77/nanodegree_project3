@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.support.v7.widget.SearchView;
 
 import it.jaschke.alexandria.api.BookListAdapter;
 import it.jaschke.alexandria.api.Callback;
@@ -80,7 +80,9 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
         mBookList.setLayoutManager(new LinearLayoutManager(getActivity()));
         mBookList.setAdapter(mBookListAdapter);
 
-
+        if(savedInstanceState!=null){
+            mBookListAdapter.onRestoreInstanceState(savedInstanceState);
+        }
         return rootView;
     }
 
@@ -124,7 +126,7 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
         mBookListAdapter.swapCursor(data);
         if (mPosition != ListView.INVALID_POSITION && mBookListAdapter.getSelectedItemPosition()<0) {
             mBookList.smoothScrollToPosition(mPosition);
-          /*  if(mChoiceMode == ListView.CHOICE_MODE_SINGLE) {
+            /*if(mChoiceMode == ListView.CHOICE_MODE_SINGLE) {
                 BookListAdapter.ViewHolder viewHolder = (BookListAdapter.ViewHolder) mBookList.findViewHolderForItemId(mBookListAdapter.getItemId(mPosition));
                 mBookListAdapter.selectView(viewHolder);
             }*/
@@ -137,6 +139,7 @@ public class ListOfBooks extends Fragment implements SearchView.OnQueryTextListe
         super.onSaveInstanceState(outState);
         outState.putString(TAG_SEARCH, mSearchString);
         outState.putInt(TAG_POSITION, mPosition);
+        mBookListAdapter.onSaveInstanceState(outState);
     }
 
     @Override
