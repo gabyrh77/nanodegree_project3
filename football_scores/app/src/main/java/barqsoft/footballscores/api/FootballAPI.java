@@ -15,7 +15,7 @@ import retrofit.http.Query;
 public interface FootballAPI {
     String API_KEY = "7ccd47ca25174a57a14ddedb763f03fe";
     String BASE_URL = "http://api.football-data.org/alpha"; //Base URL
-    String FIXTURES_URL = "/fixtures"; //Base URL
+    String FIXTURES_URL = "/fixtures";
     String SEASONS_URL = "/soccerseasons";
     String TEAMS_URL = "/soccerseasons/{id}/teams";
     String QUERY_TIME_FRAME = "timeFrame"; //Time Frame parameter to determine days

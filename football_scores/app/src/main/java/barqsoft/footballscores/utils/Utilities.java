@@ -1,12 +1,20 @@
 package barqsoft.footballscores.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.PictureDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.support.annotation.IntDef;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import barqsoft.footballscores.R;
 
@@ -93,4 +101,6 @@ public class Utilities
             return String.valueOf(home_goals) + " - " + String.valueOf(awaygoals);
         }
     }
+
+
 }

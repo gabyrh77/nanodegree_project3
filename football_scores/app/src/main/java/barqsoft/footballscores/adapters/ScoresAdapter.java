@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PictureDrawable;
+import android.os.Bundle;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,7 +36,8 @@ import barqsoft.footballscores.svg.SvgSoftwareLayerSetter;
 public class ScoresAdapter extends CursorAdapter
 {
 
-    public double detail_match_id = 0;
+    private double detail_match_id = 0;
+    private String SAVE_TAG = "SV_TAG";
     private String FOOTBALL_SCORES_HASHTAG = "#Football_Scores";
     private RequestBuilder<PictureDrawable> requestSVGBuilder;
     private RequestBuilder<Drawable> requestBuilder;
@@ -47,7 +49,6 @@ public class ScoresAdapter extends CursorAdapter
                 .as(PictureDrawable.class)
                 .apply(placeholderOf(R.drawable.no_icon).error(R.drawable.no_icon)
                         .fitCenter(context).diskCacheStrategy(DiskCacheStrategy.DATA))
-                .transition(withCrossFade())
                 .listener(new SvgSoftwareLayerSetter());
 
         requestBuilder = Glide.with(context)
@@ -138,4 +139,18 @@ public class ScoresAdapter extends CursorAdapter
         return shareIntent;
     }
 
+    public void setSelectedMatch(double id){
+        detail_match_id = id;
+        notifyDataSetChanged();
+    }
+
+    public void onRestoreInstanceState(Bundle savedState){
+        detail_match_id = savedState.getDouble(SAVE_TAG);
+        notifyDataSetChanged();
+    }
+
+    public void onSaveInstanceState(Bundle outState)
+    {
+        outState.putDouble(SAVE_TAG, detail_match_id);
+    }
 }

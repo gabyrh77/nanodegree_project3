@@ -10,10 +10,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/glide-parent/library" />
-            <option value="$PROJECT_DIR$/glide-parent/testutil" />
-            <option value="$PROJECT_DIR$/glide-parent/third_party/disklrucache" />
-            <option value="$PROJECT_DIR$/glide-parent/third_party/gif_decoder" />
+            <option value="$PROJECT_DIR$/glide/library" />
+            <option value="$PROJECT_DIR$/glide/testutil" />
+            <option value="$PROJECT_DIR$/glide/third_party/disklrucache" />
+            <option value="$PROJECT_DIR$/glide/third_party/gif_decoder" />
             <option value="$PROJECT_DIR$/third_party" />
           </set>
         </option>

@@ -3,23 +3,29 @@ package barqsoft.footballscores;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import barqsoft.footballscores.adapters.ScoresAdapter;
 import barqsoft.footballscores.adapters.ViewHolder;
+import barqsoft.footballscores.api.FootballAPIService;
 import barqsoft.footballscores.db.DatabaseContract;
-import barqsoft.footballscores.service.FootballFetchService;
+import barqsoft.footballscores.utils.Utilities;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -29,16 +35,17 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     public ScoresAdapter mAdapter;
     public static final int SCORES_LOADER = 0;
     private String[] fragmentdate = new String[1];
-    private int last_selected_item = -1;
+    private TextView emptyView;
+
     /**
-     * The fragment argument representing the section number for this
+     * The fragment argument representing the section date for this
      * fragment.
      */
     private static final String ARG_SECTION_DATE = "section_date";
 
     /**
      * Returns a new instance of this fragment for the given section
-     * number.
+     * date.
      */
     public static MainScreenFragment newInstance(String date) {
         MainScreenFragment fragment = new MainScreenFragment();
@@ -53,18 +60,28 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         final ListView score_list = (ListView) rootView.findViewById(R.id.scores_list);
 
+        mAdapter = new ScoresAdapter(getActivity(),null,0);
+        score_list.setAdapter(mAdapter);
+        emptyView = (TextView)rootView.findViewById(R.id.list_empty);
+        score_list.setEmptyView(emptyView);
         if(savedInstanceState==null){
             fragmentdate[0] = getArguments().getString(ARG_SECTION_DATE);
         }else{
             fragmentdate = savedInstanceState.getStringArray(ARG_SECTION_DATE);
+            mAdapter.onRestoreInstanceState(savedInstanceState);
         }
-        mAdapter = new ScoresAdapter(getActivity(),null,0);
-        score_list.setAdapter(mAdapter);
+
         getLoaderManager().initLoader(SCORES_LOADER,null,this);
 
         score_list.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -73,9 +90,7 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
             public void onItemClick(AdapterView<?> parent, View view, int position, long id)
             {
                 ViewHolder selected = (ViewHolder) view.getTag();
-                mAdapter.detail_match_id = selected.match_id;
-                //MainActivity.selected_match_id = (int) selected.match_id;
-                mAdapter.notifyDataSetChanged();
+                mAdapter.setSelectedMatch(selected.match_id);
             }
         });
         return rootView;
@@ -83,8 +98,11 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+
         outState.putStringArray(ARG_SECTION_DATE, fragmentdate);
+        mAdapter.onSaveInstanceState(outState);
+
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -99,6 +117,11 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     {
         Log.v(MainScreenFragment.class.getName(), "Loader query: " + String.valueOf(cursor.getCount()));
         mAdapter.swapCursor(cursor);
+        if (cursor.getCount()==0){
+            if(!FootballAPIService.isNetworkAvailable(getActivity())){
+                FootballAPIService.sendStatusBroadcast(getContext(), FootballAPIService.STATUS_NO_NETWORK);
+            }
+        }
     }
 
     @Override
@@ -106,30 +129,4 @@ public class MainScreenFragment extends Fragment implements LoaderManager.Loader
     {
         mAdapter.swapCursor(null);
     }
-
-    //Receive status from FetchService
-    private class MessageReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int response = intent.getIntExtra(FootballFetchService.MESSAGE_KEY, -1);
-            if (response == FootballFetchService.STATUS_OK) {
-                return;
-            }
-
-            switch (response) {
-                case FootballFetchService.STATUS_NO_NETWORK:
-
-                    break;
-                case FootballFetchService.STATUS_NOT_FOUND:
-
-                    break;
-                case FootballFetchService.STATUS_ERROR:
-                default:
-
-                    break;
-            }
-
-        }
-    }
-
 }
